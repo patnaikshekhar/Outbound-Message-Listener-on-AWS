@@ -1,6 +1,10 @@
 const express = require('express')
 const xmlparser = require('express-xml-bodyparser')
+const AWS = require('aws-sdk')
 
+const dynamodb = new AWS.DynamoDB({
+  region: 'eu-west-2'
+})
 const app = express()
 
 app.use(xmlparser({
@@ -18,11 +22,7 @@ app.post('/accounts', (req, res) => {
   const sobject = 
         req.body.envelope.body[0].notifications[0].notification[0].sobject[0]
   
-  const id = sobject.id
-  const accountNumber = sobject.accountnumber
-  const active = sobject.active__c
-  
-  console.log(id, accountNumber, active)
+  addToDynamo(sobject)
 
   res.end(`
    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:out="http://soap.sforce.com/2005/09/outbound">
@@ -36,12 +36,28 @@ app.post('/accounts', (req, res) => {
   `)
 })
 
-function parseBody(request) {
-  if (typeof request == 'array') {
-  } else if (typeof request == 'object') {
+const addToDynamo = (sobject) => {
+  const account = {
+    TableName: 'Account',
+    Item: {
+      Id: {
+        S: sobject.id[0]
+      },
+      AccountNumber: {
+        S: sobject.accountnumber[0]
+      },
+      Active: {
+        S: sobject.active__c[0]
+      }
+    }
   }
-}
+  
+  console.log(account)
 
+  dynamodb.putItem(account, (err, data) => {
+    console.log('Putting into dynamo', 'error = ', err, 'result = ', data)
+  })
+}
 
 app.listen(process.env.PORT, () => {
   console.log('Server is running')
