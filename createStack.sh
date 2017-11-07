@@ -1,4 +1,4 @@
-STACK_NAME=test
+STACK_NAME=OBMExample
 
 echo "Deleting existing stack"
 aws cloudformation delete-stack --stack-name $STACK_NAME
