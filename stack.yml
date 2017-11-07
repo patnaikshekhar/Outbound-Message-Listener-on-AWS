@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample Template
+Resources:
+  Webserver:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-1a7f6d7e
+      InstanceType: t2.nano
+      KeyName: ec2-test
+      SecurityGroups:
+        - !Ref WebServerSecurityGroup
+      UserData: !Base64 |
+        #!/bin/bash -x
+        yum -y update
+        yum -y install git
+        iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
+        su - ec2-user <<EOF
+        curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
+        . ~/.nvm/nvm.sh
+        nvm install 6
+        git clone https://github.com/patnaikshekhar/AWS_SF_OBM MyApp
+        cd MyApp
+        npm install
+        export PORT=3000
+        node index.js
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Sample Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+Outputs:
+  HostName:
+    Description: Host Name of instance where service is running
+    Value: !GetAtt Webserver.PublicDnsName

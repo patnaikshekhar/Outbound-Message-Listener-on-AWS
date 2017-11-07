@@ -5,6 +5,7 @@ const AWS = require('aws-sdk')
 const dynamodb = new AWS.DynamoDB({
   region: 'eu-west-2'
 })
+
 const app = express()
 
 app.use(xmlparser({
