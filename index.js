@@ -44,11 +44,11 @@ const addToDynamo = (sobject) => {
       Id: {
         S: sobject.id[0]
       },
+      Name: {
+        S: sobject.name[0]
+      },
       AccountNumber: {
         S: sobject.accountnumber[0]
-      },
-      Active: {
-        S: sobject.active__c[0]
       }
     }
   }
